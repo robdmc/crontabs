@@ -4,6 +4,8 @@ import functools
 import traceback
 
 import sys
+
+import daiquiri
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from fleming import fleming
@@ -43,7 +45,7 @@ class Tab:
         :param datetime_or_str: a datetime object or a string that dateutil.parser can understand
         :return: self
         """
-        if isinstance(datetime_or_str):
+        if isinstance(datetime_or_str, str):
             self._starting_at = parse(datetime_or_str)
         elif isinstance(datetime_or_str, datetime.datetime):
             self._starting_at = datetime_or_str
@@ -77,7 +79,7 @@ class Tab:
         :return:
         """
         self._func = func
-        self._func_args = func__kwargs
+        self._func_args = func_args
         self._func_kwargs = func__kwargs
         return self
 
@@ -150,11 +152,17 @@ class Tab:
             except:
                 # only raise the error if not in robust mode.
                 if self._robust:
-                    #TODO change this to a logger
-                    print("v" * 60)
-                    print("Exception in user code:")
-                    traceback.print_exc(file=sys.stdout)
-                    print("^" * 60)
+                    # #TODO change this to a logger
+                    # print("v" * 60)
+                    # print("Exception in user code:")
+                    # s = traceback.format_exc()
+                    # print(s)
+                    # # traceback.print_exc(file=sys.stdout)
+                    # print("^" * 60)
+
+                    s = 'Error in tab\n' + traceback.format_exc()
+                    logger = daiquiri.getLogger(self._name)
+                    logger.error(s)
                 else:
                     raise
 
