@@ -5,7 +5,23 @@ import signal
 
 import sys
 
+import logging
 
+import daiquiri
+
+daiquiri.setup(level=logging.INFO)
+
+# daiquiri.setup(
+#     level=logging.INFO,
+#     # outputs=(
+#     #     daiquiri.output.Stream(
+#     #         sys.stdout,
+#     #         formatter=daiquiri.formatter.JSON_FORMATTER
+#     #     ),
+#     # )
+# )
+
+# logger = daiquiri.getLogger(__name__, subsystem='rob')
 class SubProcess:
     def __init__(
             self,
@@ -40,6 +56,9 @@ class SubProcess:
         )
         self._process.daemon = True
         self._process.start()
+        logger = daiquiri.getLogger(self._name)
+        # logger.info('{} woke up'.format(self._name))
+        logger.info('Woke up')
 
     def stop(self):
         """
@@ -47,7 +66,10 @@ class SubProcess:
         """
         # try stopping the processes
         try:
-            self._process.terminate()
+            if self._process.is_alive():
+                self._process.terminate()
+                logger = daiquiri.getLogger(self._name)
+                logger.info('Went down')
         # If an error was raised, the process is dead already
         except:
             pass
@@ -72,6 +94,7 @@ class ProcessMonitor:
         self.init_interrupts()
 
         self._subprocesses = []
+        self._is_running = False
 
     def add_subprocess(self, name, func, *args, **kwargs):
         sub = SubProcess(
@@ -108,18 +131,22 @@ class ProcessMonitor:
             signal.signal(sig_num, self.interrupt_handler)
 
     def run(self):
-        try:
-            self.loop()
-        finally:
-            self.stop_subprocesses()
+        self.loop()
+        # try:
+        #     self.loop()
+        # finally:
+        #     self.stop_subprocesses()
 
     def loop(self):
         """
         Main loop for the process. This will run continuously until the max run seconds is reached or an exception
         """
-        while True:
+        self._is_running = True
+        while self._is_running:
             for subprocess in self._subprocesses:
                 if not subprocess.is_alive():
+                    logger = daiquiri.getLogger('process_monitor')
+                    logger.info('Starting {}'.format(subprocess._name))
                     subprocess.start()
             sleep(self.SLEEP_SECONDS)
 
@@ -139,5 +166,9 @@ class ProcessMonitor:
         Stop all the sub processes
         """
         # Stop all sub processes
-        for sub_process in self._subprocesses:
-            sub_process.stop()
+        if self._is_running:
+            logger = daiquiri.getLogger('process_monitor')
+            logger.info('Killing all subprocesses')
+            self._is_running = False
+            for sub_process in self._subprocesses:
+                sub_process.stop()
