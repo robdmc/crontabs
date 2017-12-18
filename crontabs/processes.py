@@ -5,11 +5,18 @@ import signal
 
 import sys
 
+
+
+
+
 import logging
 
 import daiquiri
 
 daiquiri.setup(level=logging.INFO)
+
+
+atexit.register(exit_func)
 
 class SubProcess:
     def __init__(
@@ -48,37 +55,11 @@ class SubProcess:
         logger = daiquiri.getLogger(self._name)
         logger.info('Starting')
 
-    def stop(self):
-        """
-        Stop the process
-        """
-        # try stopping the processes
-        try:
-            self._process.terminate()
-            logger = daiquiri.getLogger(self._name)
-            logger.info('Shutting down')
-        # If an error was raised, the process is dead already
-        except:
-            pass
-        # Regardless of what happened, set the current process to None
-        finally:
-            self._process = None
-
-    def wait(self):  # pragma: no cover
-        """
-        Wait for the process to complete
-        """
-        if self._process:
-            self._process.join()
-
 
 class ProcessMonitor:
     SLEEP_SECONDS = .5
 
     def __init__(self):
-
-        # Handle interrupts
-        self.init_interrupts()
 
         self._subprocesses = []
         self._is_running = False
@@ -92,36 +73,8 @@ class ProcessMonitor:
         )
         self._subprocesses.append(sub)
 
-    def interrupt_handler(self, sig_num, stack):
-        """
-        Handle an interrupt signal
-        """
-        # Determine if we need to exit
-        if sig_num in [signal.SIGINT, signal.SIGQUIT, signal.SIGTERM, signal.SIGABRT]:
-            self.exit(0)
-
-    def init_interrupts(self):
-        """
-        Initialize any signals that could interrupt this process
-        """
-
-        signals = [
-            signal.SIGABRT,
-            signal.SIGHUP,
-            signal.SIGTERM,
-            signal.SIGINT,
-            signal.SIGQUIT,
-            signal.SIGTRAP,
-            signal.SIGUSR2,
-        ]
-        for sig_num in signals:
-            signal.signal(sig_num, self.interrupt_handler)
-
     def run(self):
-        try:
-            self.loop()
-        finally:
-            self.stop_subprocesses()
+        self.loop()
 
     def loop(self):
         """
@@ -133,24 +86,3 @@ class ProcessMonitor:
                 if not subprocess.is_alive():
                     subprocess.start()
             sleep(self.SLEEP_SECONDS)
-
-    def exit(self, sig_num=0):
-        """
-        Force the exit of this process with a sig num
-        """
-
-        # Stop the sub processes
-        self.stop_subprocesses()
-
-        # Exit the system
-        sys.exit(0)
-
-    def stop_subprocesses(self):
-        """
-        Stop all the sub processes
-        """
-        # Stop all sub processes
-        if self._is_running:
-            self._is_running = False
-            for sub_process in self._subprocesses:
-                sub_process.stop()

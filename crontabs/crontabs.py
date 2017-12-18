@@ -16,14 +16,17 @@ class Cron:
         self.monitor = ProcessMonitor()
         self._tab_list = []
 
-    def tabs(self, tabs):
+    def tab(self, tabs):
         self._tab_list = tabs
 
     def go(self):
         for tab in self._tab_list:
             self.monitor.add_subprocess(tab._name, tab._get_target())
 
-        self.monitor.loop()
+        try:
+            self.monitor.loop()
+        except KeyboardInterrupt:
+            pass
 
 
 
@@ -149,6 +152,9 @@ class Tab:
 
                 # run the function
                 self._func(*self._func_args, **self._func_kwargs)
+            except KeyboardInterrupt:
+                pass
+
             except:
                 # only raise the error if not in robust mode.
                 if self._robust:
