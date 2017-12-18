@@ -11,6 +11,9 @@ from dateutil.relativedelta import relativedelta
 from fleming import fleming
 from processes import ProcessMonitor, SubProcess
 
+import logging
+daiquiri.setup(level=logging.INFO)
+
 class Cron:
     def __init__(self):
         self.monitor = ProcessMonitor()
@@ -114,6 +117,8 @@ class Tab:
         return out_kwargs
 
     def _loop(self):
+        logger = daiquiri.getLogger(self._name)
+        logger.info('Starting')
         # fleming and dateutil have arguments that just differ by ending in an "s"
         fleming_kwargs = self._every_kwargs
         relative_delta_kwargs = {}
@@ -150,8 +155,11 @@ class Tab:
                 sleep_seconds = (next_time - now).total_seconds()
                 time.sleep(sleep_seconds)
 
+                logger.info('Running')
+
                 # run the function
                 self._func(*self._func_args, **self._func_kwargs)
+
             except KeyboardInterrupt:
                 pass
 
