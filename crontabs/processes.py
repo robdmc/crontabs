@@ -1,4 +1,8 @@
-from Queue import Empty
+try:
+    from Queue import Empty
+except:
+    from queue import Empty
+
 from multiprocessing import Process, Queue
 import datetime
 import sys
