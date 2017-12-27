@@ -1,21 +1,22 @@
 import datetime
 import time
-import functools
 import traceback
-
-import sys
 
 import daiquiri
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from fleming import fleming
-from processes import ProcessMonitor, SubProcess
+from processes import ProcessMonitor
 
 import logging
 daiquiri.setup(level=logging.INFO)
 
+
 class Cron:
     def __init__(self):
+        """
+        A Cron object runs many "tabs" of asynchronous tasks.
+        """
         self.monitor = ProcessMonitor()
         self._tab_list = []
 
@@ -30,7 +31,6 @@ class Cron:
             self.monitor.loop()
         except KeyboardInterrupt:
             pass
-
 
 
 class Tab:
@@ -65,7 +65,7 @@ class Tab:
         That argument must be one named one of [second, minute, hour, day, week, month, year] or
         their plural equivalents.
 
-        :param kwargs: Exactly on keyword argument
+        :param kwargs: Exactly one keyword argument
         :return: self
         """
         if len(kwargs) != 1:
@@ -163,17 +163,9 @@ class Tab:
             except KeyboardInterrupt:
                 pass
 
-            except:
+            except:  # noqa
                 # only raise the error if not in robust mode.
                 if self._robust:
-                    # #TODO change this to a logger
-                    # print("v" * 60)
-                    # print("Exception in user code:")
-                    # s = traceback.format_exc()
-                    # print(s)
-                    # # traceback.print_exc(file=sys.stdout)
-                    # print("^" * 60)
-
                     s = 'Error in tab\n' + traceback.format_exc()
                     logger = daiquiri.getLogger(self._name)
                     logger.error(s)

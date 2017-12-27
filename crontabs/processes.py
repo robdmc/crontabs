@@ -16,12 +16,15 @@ class SubProcess:
             self,
             name,
             target,
-            q,
+            q_stdout,
+            q_stderr,
             args=None,
             kwargs=None,
     ):
+        # set up the io queues
+        self.q_stdout = q_stdout
+        self.q_stderr = q_stderr
 
-        self.q = q
         # Setup the name of the sub process
         self._name = name
 
@@ -44,44 +47,46 @@ class SubProcess:
 
         self._process = Process(
             target=wrapped_target,
-            args=[self._target, self.q] + list(self._args),
+            args=[self._target, self.q_stdout, self.q_stderr] + list(self._args),
             kwargs=self._kwargs
         )
         self._process.daemon = True
         self._process.start()
-        # logger = daiquiri.getLogger(self._name)
-        # logger.info('Starting')
 
+class IOQueue:
+    def __init__(self, q):
+        self._q = q
 
-def wrapped_target(target, q, *args, **kwargs):
+    def write(self, item):
+        self._q.put(item)
 
-    class QStdout:
-        def __init__(self, q):
-            self._q = q
-
-        def write(self, item):
-            q.put(item)
-
+def wrapped_target(target, q_stdout, q_stderr, *args, **kwargs):
+    """
+    Wraps a target with queues replacing stdout and stderr
+    """
     import sys
-    sys.stdout = QStdout(q)
+    sys.stdout = IOQueue(q_stdout)
+    sys.stderr = IOQueue(q_stderr)
 
     target(*args, **kwargs)
 
 
 class ProcessMonitor:
-    SLEEP_SECONDS = .5
+    TIMEOUT_SECONDS = .05
 
     def __init__(self):
 
         self._subprocesses = []
         self._is_running = False
-        self.q = Queue()
+        self.q_stdout = Queue()
+        self.q_stderr = Queue()
 
     def add_subprocess(self, name, func, *args, **kwargs):
         sub = SubProcess(
             name,
             target=func,
-            q = self.q,
+            q_stdout = self.q_stdout,
+            q_stderr = self.q_stderr,
             args=args,
             kwargs=kwargs
         )
@@ -89,6 +94,16 @@ class ProcessMonitor:
 
     def run(self):
         self.loop()
+
+    def process_io_queue(self, q, stream):
+        try:
+            out = q.get(timeout=self.TIMEOUT_SECONDS)
+            out = out.strip()
+            if out:
+                stream.write(out + '\n')
+                stream.flush()
+        except Empty:
+            pass
 
     def loop(self):
         """
@@ -99,14 +114,6 @@ class ProcessMonitor:
             for subprocess in self._subprocesses:
                 if not subprocess.is_alive():
                     subprocess.start()
-            try:
-                out = self.q.get(timeout=.1)
-                out = out.strip()
-                if out:
-                    print(out)
-                sys.stdout.flush()
-            except Empty:
-                pass
 
-OKAY HERE IS WHAT IM WORKING ON.  I JUST GOT STDOUT SENT BACK TO MOTHER Process
-USING A QUEUE.  I NEED TO DO THE SAME THING FOR STDERR AND CLEAN IT UP.
+            self.process_io_queue(self.q_stdout, sys.stdout)
+            self.process_io_queue(self.q_stderr, sys.stderr)

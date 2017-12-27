@@ -26,7 +26,7 @@ tests_require = [
     'coverage',
     'flake8',
     'mock',
-    'nose',
+    'pytest',
     'wheel',
 ]
 
