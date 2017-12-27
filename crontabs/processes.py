@@ -1,6 +1,6 @@
 try:
     from Queue import Empty
-except:
+except:  # flake8: noqa
     from queue import Empty
 
 from multiprocessing import Process, Queue
@@ -49,6 +49,7 @@ class SubProcess:
         )
         self._process.daemon = True
         self._process.start()
+
 
 class IOQueue:  # pragma: no cover
     def __init__(self, q):

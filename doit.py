@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-
+# flake8: noqa
 
 from crontabs import Cron, Tab
 from datetime import datetime

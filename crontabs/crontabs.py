@@ -1,3 +1,6 @@
+"""
+Module for manageing crontabs interface
+"""
 import datetime
 import time
 import traceback
@@ -36,6 +39,7 @@ class Cron:
 
 class Tab:
     _SILENCE_LOGGER = False
+
     def __init__(self, name, robust=True, verbose=True):
         self._name = name
         self._robust = robust

@@ -9,6 +9,12 @@ from dateutil.parser import parse
 
 Tab._SILENCE_LOGGER = True
 
+# Run tests with
+# py.test -s  crontabs/tests/test_example.py::TestSample::test_base_case
+# Or for parallel tests
+# py.test -s  --cov  -n 2
+
+
 class ExpectedException(Exception):
     pass
 
@@ -43,6 +49,7 @@ class PrintCatcher(object):  # pragma: no cover  This is a testing utility that 
 def time_logger(name):  # pragma: no cover
     print('{} {}'.format(name, datetime.datetime.now()))
 
+
 def time__sleepy_logger(name):  # pragma: no cover
     time.sleep(3)
     print('{} {}'.format(name, datetime.datetime.now()))
@@ -51,13 +58,6 @@ def time__sleepy_logger(name):  # pragma: no cover
 def error_raisor(name):
     raise ExpectedException('This exception is expected in tests. Don\'t worry about it.')
 
-
-
-
-# Run tests with
-# py.test -s  crontabs/tests/test_example.py::TestSample::test_base_case
-# Or for parallel tests
-# py.test -s  --cov  -n 2
 
 class TestSample(TestCase):
 
@@ -86,7 +86,6 @@ class TestSample(TestCase):
             tab._loop(max_iter=7)
         self.assertEqual(catcher.text.count('one_sec'), 2)
 
-
     def test_tab_loop_anchored(self):
         now = datetime.datetime.now() + datetime.timedelta(seconds=1)
         tab = Tab(
@@ -113,7 +112,7 @@ class TestSample(TestCase):
 
     def test_bad_starting_at(self):
         with self.assertRaises(ValueError):
-           Tab('a').starting_at(2.345)
+            Tab('a').starting_at(2.345)
             # Cron().schedule(Tab('a').starting_at(2.345))
 
     def test_bad_every(self):
@@ -161,7 +160,7 @@ class TestSample(TestCase):
 
     def test_anchored_case(self):
         cron = Cron()
-        starting = datetime.datetime.now() #  + datetime.timedelta(seconds=3)
+        starting = datetime.datetime.now()
         cron.schedule(
             Tab('three_sec', verbose=False).starting_at(starting).every(seconds=3).run(time_logger, 'three_sec'),
             Tab('three_sec_str', verbose=False).starting_at(
