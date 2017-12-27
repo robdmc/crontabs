@@ -10,5 +10,5 @@ significant ways.
     you can rest assured that it will always run at 5, 10, 15, etc. passed the hour with no drift.
   * The python functions are all run in child processes.  Not only does this enable asynchronous scheduling,
     it also helps mitigate python memory problems due to the
-    [high watermark issue] (https://hbfs.wordpress.com/2013/01/08/python-memory-management-part-ii/)
+    [high watermark issue](https://hbfs.wordpress.com/2013/01/08/python-memory-management-part-ii/)
 
