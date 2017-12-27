@@ -69,7 +69,7 @@ Cron().schedule(
     ).every(
         seconds=5
     ).starting_at(
-        '12/27/2017T16:45'
+        '12/27/2017T16:45'  # this argument can either be parsable text or datetime object
     ).run(
         my_job, 'fast', seconds=5
     )
