@@ -23,20 +23,22 @@ class Cron:
     def tab(self, tabs):
         self._tab_list = tabs
 
-    def go(self):
+    def go(self, max_seconds=None):
         for tab in self._tab_list:
             self.monitor.add_subprocess(tab._name, tab._get_target())
 
         try:
-            self.monitor.loop()
+            self.monitor.loop(max_seconds=max_seconds)
         except KeyboardInterrupt:
             pass
 
 
 class Tab:
-    def __init__(self, name, robust=True):
+    _SILENCE_LOGGER = False
+    def __init__(self, name, robust=True, verbose=True):
         self._name = name
         self._robust = robust
+        self._verbose = verbose
         self._starting_at = None
         self._every_kwargs = None
         self._func = None
@@ -117,8 +119,9 @@ class Tab:
         return out_kwargs
 
     def _loop(self):
-        logger = daiquiri.getLogger(self._name)
-        logger.info('Starting')
+        if not self._SILENCE_LOGGER:
+            logger = daiquiri.getLogger(self._name)
+            logger.info('Starting')
         # fleming and dateutil have arguments that just differ by ending in an "s"
         fleming_kwargs = self._every_kwargs
         relative_delta_kwargs = {}
@@ -155,7 +158,8 @@ class Tab:
                 sleep_seconds = (next_time - now).total_seconds()
                 time.sleep(sleep_seconds)
 
-                logger.info('Running')
+                if self._verbose and not self._SILENCE_LOGGER:
+                    logger.info('Running')
 
                 # run the function
                 self._func(*self._func_args, **self._func_kwargs)

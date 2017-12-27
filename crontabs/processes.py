@@ -1,13 +1,6 @@
 from Queue import Empty
 from multiprocessing import Process, Queue
-from time import sleep
-
-
-
-import logging
-import daiquiri
-
-# daiquiri.setup(level=logging.INFO)
+import datetime
 import sys
 
 
@@ -92,9 +85,6 @@ class ProcessMonitor:
         )
         self._subprocesses.append(sub)
 
-    def run(self):
-        self.loop()
-
     def process_io_queue(self, q, stream):
         try:
             out = q.get(timeout=self.TIMEOUT_SECONDS)
@@ -105,12 +95,17 @@ class ProcessMonitor:
         except Empty:
             pass
 
-    def loop(self):
+    def loop(self, max_seconds=None):
         """
-        Main loop for the process. This will run continuously until the max run seconds is reached or an exception
+        Main loop for the process. This will run continuously until maxiter
         """
+        loop_started =  datetime.datetime.now()
+
         self._is_running = True
         while self._is_running:
+            if max_seconds is not None:
+                if (datetime.datetime.now() - loop_started).total_seconds() > max_seconds:
+                    break
             for subprocess in self._subprocesses:
                 if not subprocess.is_alive():
                     subprocess.start()
