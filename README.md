@@ -17,8 +17,12 @@ ways.
 ### Scheduling a job to run every five minutes starting on the hour.
 ```python
 from crontabs import Cron, Tab
-Cron().tab(
-    [
+from datetime import datetime
 
+def my_job(*args, **kwargs):
+    print('args={} kwargs={} running at {}'.format(args, kwargs, datetime.now()))
+
+Cron().schedule(
+    Tab(name='run_my_job').every(minutes=5).run(my_job, 'my_arg', my_kwarg='hello')
 )
 
