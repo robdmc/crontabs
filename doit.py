@@ -1,7 +1,21 @@
 #! /usr/bin/env python
 
 
+from crontabs import Cron, Tab
+from datetime import datetime
 
+def my_job(*args, **kwargs):
+    print('args={} kwargs={} running at {}'.format(args, kwargs, datetime.now()))
+
+
+# All logging messages are sent to sdtout
+Cron().schedule(
+    # Turn of logging for job that runs every five seconds
+    Tab(name='my_fast_job', verbose=False).every(seconds=5).run(my_job, 'fast', seconds=5),
+
+    # Go ahead and let this job emit logging messages
+    Tab(name='my_slow_job').every(seconds=20).run(my_job, 'slow', seconds=20),
+).go()
 
 
 # from crontabs.crontabs import Cron, Tab

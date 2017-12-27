@@ -14,6 +14,7 @@ ways.
 
 
 # Usage
+
 ### Scheduling a job to run every five seconds starting on the minute.
 ```python
 from crontabs import Cron, Tab
@@ -24,6 +25,22 @@ def my_job(*args, **kwargs):
 
 Cron().schedule(
     Tab(name='run_my_job').every(seconds=5).run(my_job, 'my_arg', my_kwarg='hello')
+).go()
+
+```
+
+### Scheduling multiple jobs
+```python
+from crontabs import Cron, Tab
+from datetime import datetime
+
+# All logging messages are sent to sdtout
+Cron().schedule(
+    # Turn of logging for job that runs every five seconds
+    Tab(name='my_fast_job', verbose=False).every(seconds=5).run(my_job, 'fast', seconds=5),
+
+    # Go ahead and let this job emit logging messages
+    Tab(name='my_slow_job').every(seconds=20).run(my_job, 'slow', seconds=20),
 ).go()
 
 ```
