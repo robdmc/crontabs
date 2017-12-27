@@ -20,10 +20,7 @@ class Cron:
         self.monitor = ProcessMonitor()
         self._tab_list = []
 
-    def tab(self, tabs):
-        if not hasattr(tabs, '__iter__'):
-            raise ValueError('Must supply an iterable of tabs')
-
+    def schedule(self, *tabs):
         self._tab_list = list(tabs)
         return self
 

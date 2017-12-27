@@ -13,7 +13,7 @@ tabs = [
     Tab(str(n)).every(seconds=n).run(func, n)
     for n in range(1, 8)
 ]
-cron.tab(tabs)
+cron.schedule(tabs)
 
 # cron.tab(
 #     [

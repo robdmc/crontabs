@@ -109,31 +109,28 @@ class TestSample(TestCase):
 
     def test_incomplete(self):
         with self.assertRaises(ValueError):
-            Cron().tab([Tab('a').run(time_logger, 'bad')]).go()
-
-    def test_bad_tabs(self):
-        with self.assertRaises(ValueError):
-            Cron().tab(Tab('a').run(time_logger, 'bad'))
+            Cron().schedule(Tab('a').run(time_logger, 'bad')).go()
 
     def test_bad_starting_at(self):
         with self.assertRaises(ValueError):
-            Cron().tab(Tab('a').starting_at(2.345))
+           Tab('a').starting_at(2.345)
+            # Cron().schedule(Tab('a').starting_at(2.345))
 
     def test_bad_every(self):
         with self.assertRaises(ValueError):
-            Cron().tab(Tab('a').every(second=1, minute=3))
+            Tab('a').every(second=1, minute=3)
+            # Cron().schedule(Tab('a').every(second=1, minute=3))
 
     def test_bad_interval(self):
         with self.assertRaises(ValueError):
-            Cron().tab(Tab('a').every(bad=11))
+            Tab('a').every(bad=11)
+            # Cron().schedule(Tab('a').every(bad=11))
 
     def test_base_case(self):
         cron = Cron()
-        cron.tab(
-            [
-                Tab('two_sec', verbose=False).every(seconds=2).run(time_logger, 'two_sec'),
-                Tab('three_sec', verbose=False).every(seconds=3).run(time_logger, 'three_sec')
-            ]
+        cron.schedule(
+            Tab('two_sec', verbose=False).every(seconds=2).run(time_logger, 'two_sec'),
+            Tab('three_sec', verbose=False).every(seconds=3).run(time_logger, 'three_sec')
         )
         with PrintCatcher(stream='stdout') as stdout_catcher:
             cron.go(max_seconds=6)
@@ -165,12 +162,10 @@ class TestSample(TestCase):
     def test_anchored_case(self):
         cron = Cron()
         starting = datetime.datetime.now() #  + datetime.timedelta(seconds=3)
-        cron.tab(
-            [
-                Tab('three_sec', verbose=False).starting_at(starting).every(seconds=3).run(time_logger, 'three_sec'),
-                Tab('three_sec_str', verbose=False).starting_at(
-                    starting.isoformat()).every(seconds=3).run(time_logger, 'three_sec_str'),
-            ]
+        cron.schedule(
+            Tab('three_sec', verbose=False).starting_at(starting).every(seconds=3).run(time_logger, 'three_sec'),
+            Tab('three_sec_str', verbose=False).starting_at(
+                starting.isoformat()).every(seconds=3).run(time_logger, 'three_sec_str'),
         )
         with PrintCatcher(stream='stdout') as stdout_catcher:
             cron.go(max_seconds=3.5)
