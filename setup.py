@@ -27,6 +27,7 @@ tests_require = [
     'flake8',
     'mock',
     'pytest',
+    'pytest-cov',
     'wheel',
 ]
 
