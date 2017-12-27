@@ -83,6 +83,8 @@ Cron().schedule(
 
 # Run test suite with
 ```bash
-pip install crontabs[dev]
+git clone git@github.com:robdmc/crontabs.git
+cd crontabs
+pip install -e .[dev]
 py.test -s  --cov  -n 8
 ```
