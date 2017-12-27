@@ -21,7 +21,11 @@ class Cron:
         self._tab_list = []
 
     def tab(self, tabs):
-        self._tab_list = tabs
+        if not hasattr(tabs, '__iter__'):
+            raise ValueError('Must supply an iterable of tabs')
+
+        self._tab_list = list(tabs)
+        return self
 
     def go(self, max_seconds=None):
         for tab in self._tab_list:
@@ -29,7 +33,7 @@ class Cron:
 
         try:
             self.monitor.loop(max_seconds=max_seconds)
-        except KeyboardInterrupt:
+        except KeyboardInterrupt:  # pragma: no cover
             pass
 
 
@@ -118,8 +122,8 @@ class Tab:
 
         return out_kwargs
 
-    def _loop(self):
-        if not self._SILENCE_LOGGER:
+    def _loop(self, max_iter=None):
+        if not self._SILENCE_LOGGER:  # pragma: no cover don't want to clutter tests
             logger = daiquiri.getLogger(self._name)
             logger.info('Starting')
         # fleming and dateutil have arguments that just differ by ending in an "s"
@@ -138,9 +142,14 @@ class Tab:
         else:
             previous_time = fleming.floor(datetime.datetime.now(), **fleming_kwargs)
 
+        # keep track of iterations
+        n_iter = 0
         # this is the infinite loop that runs the cron.  It will only be stopped when the
         # process is killed by its monitor.
         while True:
+            n_iter += 1
+            if max_iter is not None and n_iter > max_iter:
+                break
             # everything is run in a try block so errors can be explicitly handled
             try:
                 # push forward the previous/next times
@@ -158,13 +167,13 @@ class Tab:
                 sleep_seconds = (next_time - now).total_seconds()
                 time.sleep(sleep_seconds)
 
-                if self._verbose and not self._SILENCE_LOGGER:
+                if self._verbose and not self._SILENCE_LOGGER:  # pragma: no cover
                     logger.info('Running')
 
                 # run the function
                 self._func(*self._func_args, **self._func_kwargs)
 
-            except KeyboardInterrupt:
+            except KeyboardInterrupt:  # pragma: no cover
                 pass
 
             except:  # noqa

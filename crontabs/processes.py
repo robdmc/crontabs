@@ -46,14 +46,14 @@ class SubProcess:
         self._process.daemon = True
         self._process.start()
 
-class IOQueue:
+class IOQueue:  # pragma: no cover
     def __init__(self, q):
         self._q = q
 
     def write(self, item):
         self._q.put(item)
 
-def wrapped_target(target, q_stdout, q_stderr, *args, **kwargs):
+def wrapped_target(target, q_stdout, q_stderr, *args, **kwargs):  # pragma: no cover
     """
     Wraps a target with queues replacing stdout and stderr
     """
