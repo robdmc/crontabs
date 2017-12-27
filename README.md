@@ -13,6 +13,10 @@ ways.
     [high watermark issue](https://hbfs.wordpress.com/2013/01/08/python-memory-management-part-ii/)
 
 
+# Installation
+```bash
+pip install crontabs
+```
 # Usage
 
 ### Schedule a single job
@@ -75,4 +79,10 @@ Cron().schedule(
     )
 # max_seconds starts from the moment go is called.  Pad for future run times accordingly.
 ).go(max_seconds=60)
+```
+
+# Run test suite with
+```bash
+pip install crontabs[dev]
+py.test -s  --cov  -n 8
 ```
