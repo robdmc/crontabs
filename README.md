@@ -1,6 +1,6 @@
 # Crontabs
 Crontabs is a small library that makes it simple to schedule python functions to run on a schedule.
-Crontabs was inspired by the excellent schedule library for python, https://github.com/dbader/schedule
+Crontabs was inspired by the excellent [schedule](https://github.com/dbader/schedule) library for python,
 
 In addition to haveing a slightly different API than the schedule module, Crontabs differes in two other
 significant ways.
