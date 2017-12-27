@@ -73,5 +73,6 @@ Cron().schedule(
     ).run(
         my_job, 'fast', seconds=5
     )
+# max_seconds starts from the moment go is called.  Pad for future runtimes accordingly.
 ).go(max_seconds=60)
 ```
