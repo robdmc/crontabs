@@ -1,3 +1,3 @@
 from .version import __version__
 
-from crontabs import Cron, Tab
+from crontabs.crontabs import Cron, Tab
