@@ -8,14 +8,17 @@ def my_job(*args, **kwargs):
     print('args={} kwargs={} running at {}'.format(args, kwargs, datetime.now()))
 
 
-# All logging messages are sent to sdtout
 Cron().schedule(
-    # Turn of logging for job that runs every five seconds
-    Tab(name='my_fast_job', verbose=False).every(seconds=5).run(my_job, 'fast', seconds=5),
-
-    # Go ahead and let this job emit logging messages
-    Tab(name='my_slow_job').every(seconds=20).run(my_job, 'slow', seconds=20),
-).go()
+    Tab(
+        name='future_job'
+    ).every(
+        seconds=5
+    ).starting_at(
+        '12/27/2017T16:45'
+    ).run(
+        my_job, 'fast', seconds=5
+    )
+).go(max_seconds=60)
 
 
 # from crontabs.crontabs import Cron, Tab

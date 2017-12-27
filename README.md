@@ -15,7 +15,7 @@ ways.
 
 # Usage
 
-### Scheduling a job to run every five seconds starting on the minute.
+### Schedule a single job
 ```python
 from crontabs import Cron, Tab
 from datetime import datetime
@@ -25,13 +25,14 @@ def my_job(*args, **kwargs):
     print('args={} kwargs={} running at {}'.format(args, kwargs, datetime.now()))
 
 
+# Will run with a 5 minute interval synced to the top of the minute
 Cron().schedule(
     Tab(name='run_my_job').every(seconds=5).run(my_job, 'my_arg', my_kwarg='hello')
 ).go()
 
 ```
 
-### Scheduling multiple jobs
+### Schedule multiple jobs
 ```python
 from crontabs import Cron, Tab
 from datetime import datetime
@@ -52,3 +53,25 @@ Cron().schedule(
 
 ```
 
+### Schedule future job to run repeatedly for a fixed amount of time
+```python
+from crontabs import Cron, Tab
+from datetime import datetime
+
+
+def my_job(*args, **kwargs):
+    print('args={} kwargs={} running at {}'.format(args, kwargs, datetime.now()))
+
+
+Cron().schedule(
+    Tab(
+        name='future_job'
+    ).every(
+        seconds=5
+    ).starting_at(
+        '12/27/2017T16:45'
+    ).run(
+        my_job, 'fast', seconds=5
+    )
+).go(max_seconds=60)
+```
