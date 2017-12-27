@@ -41,6 +41,11 @@ def time_logger(name):  # pragma: no cover
 
 
 
+# Run tests with
+# py.test -s  crontabs/tests/test_example.py::TestSample::test_base_case
+# Or for parallel tests
+# py.test -s  --cov  -n 2
+
 class TestSample(TestCase):
     def test_base_case(self):
         cron = Cron()
