@@ -29,7 +29,7 @@ class Cron:
 
     def go(self, max_seconds=None):
         for tab in self._tab_list:
-            self.monitor.add_subprocess(tab._name, tab._get_target())
+            self.monitor.add_subprocess(tab._name, tab._get_target(), tab._robust)
 
         try:
             self.monitor.loop(max_seconds=max_seconds)
