@@ -130,6 +130,7 @@ class ProcessMonitor:
             pass
 
     def process_error_queue(self, error_queue):
+        NEED TO WRITE TESTS FOR THIS
         try:
             error_name = error_queue.get(timeout=self.TIMEOUT_SECONDS)
             if error_name:
