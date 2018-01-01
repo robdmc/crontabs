@@ -9,7 +9,7 @@ import daiquiri
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from fleming import fleming
-from crontabs.processes import ProcessMonitor
+from .processes import ProcessMonitor
 
 import logging
 daiquiri.setup(level=logging.INFO)

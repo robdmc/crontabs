@@ -2,9 +2,9 @@ import traceback
 
 import daiquiri
 
-try:
+try:  # pragma: no cover
     from Queue import Empty
-except:  # flake8: noqa
+except:  # flake8: noqa  pragma: no cover
     from queue import Empty
 
 from multiprocessing import Process, Queue
@@ -70,6 +70,10 @@ class IOQueue:  # pragma: no cover
     def write(self, item):
         self._q.put(item)
 
+    def flush(self):
+        pass
+
+
 def wrapped_target(target, q_stdout, q_stderr, q_error, robust, name, *args, **kwargs):  # pragma: no cover
     """
     Wraps a target with queues replacing stdout and stderr
@@ -130,7 +134,6 @@ class ProcessMonitor:
             pass
 
     def process_error_queue(self, error_queue):
-        NEED TO WRITE TESTS FOR THIS
         try:
             error_name = error_queue.get(timeout=self.TIMEOUT_SECONDS)
             if error_name:

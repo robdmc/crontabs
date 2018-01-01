@@ -59,7 +59,7 @@ def error_raisor(name):
     raise ExpectedException('This exception is expected in tests. Don\'t worry about it.')
 
 
-class TestSample(TestCase):
+class TestCrontabs(TestCase):
 
     def test_non_robust_error(self):
         tab = Tab(
@@ -178,3 +178,59 @@ class TestSample(TestCase):
                 elapsed = (time - starting).total_seconds()
                 self.assertTrue(elapsed > 2)
                 self.assertTrue(elapsed < 3)
+
+
+class TestRobustness(TestCase):
+    def test_robust_case(self):
+
+        then = datetime.datetime.now()
+
+        def timed_error():  # pragma: no cover
+            now = datetime.datetime.now()
+            if then + datetime.timedelta(seconds=3) < now < then + datetime.timedelta(seconds=6):
+                print('timed_error_failure')
+                raise ExpectedException('This exception is expected in tests. Don\'t worry about it.')
+            else:
+                print('timed_error_success')
+
+        cron = Cron()
+        cron.schedule(
+            Tab('one_sec', verbose=False).every(seconds=1).run(time_logger, 'running_time_logger'),
+            Tab('two_sec', verbose=False, robust=True).every(seconds=1).run(timed_error)
+        )
+        with PrintCatcher(stream='stdout') as catcher:
+            cron.go(max_seconds=10)
+
+        success_count = catcher.text.count('timed_error_success')
+        failure_count = catcher.text.count('timed_error_failure')
+        time_logger_count = catcher.text.count('running_time_logger')
+        self.assertEqual(success_count, 7)
+        self.assertEqual(failure_count, 3)
+        self.assertEqual(time_logger_count, 10)
+
+    def test_non_robust_case(self):
+
+        then = datetime.datetime.now()
+
+        def timed_error():
+            now = datetime.datetime.now()
+            if then + datetime.timedelta(seconds=3) < now < then + datetime.timedelta(seconds=6):
+                print('timed_error_failure')
+                raise ExpectedException('This exception is expected in tests. Don\'t worry about it.')
+            else:
+                print('timed_error_success')
+
+        cron = Cron()
+        cron.schedule(
+            Tab('one_sec', verbose=False).every(seconds=1).run(time_logger, 'running_time_logger'),
+            Tab('two_sec', verbose=False, robust=False).every(seconds=1).run(timed_error)
+        )
+        with PrintCatcher(stream='stdout') as catcher:
+            cron.go(max_seconds=10)
+
+        success_count = catcher.text.count('timed_error_success')
+        failure_count = catcher.text.count('timed_error_failure')
+        time_logger_count = catcher.text.count('running_time_logger')
+        self.assertEqual(success_count, 3)
+        self.assertEqual(failure_count, 1)
+        self.assertEqual(time_logger_count, 10)
