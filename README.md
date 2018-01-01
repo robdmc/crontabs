@@ -48,7 +48,7 @@ def my_job(*args, **kwargs):
 
 # All logging messages are sent to sdtout
 Cron().schedule(
-    # Turn of logging for job that runs every five seconds
+    # Turn off logging for job that runs every five seconds
     Tab(name='my_fast_job', verbose=False).every(seconds=5).run(my_job, 'fast', seconds=5),
 
     # Go ahead and let this job emit logging messages
