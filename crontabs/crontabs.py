@@ -41,6 +41,14 @@ class Tab:
     _SILENCE_LOGGER = False
 
     def __init__(self, name, robust=True, verbose=True):
+        """
+        Schedules a Tab entry in the cron runner
+        :param name:  Every tab must have a string name
+        :param robust:  A robust tab will be restarted if an error occures
+                        A non robust tab will not be restarted, but all other
+                        non-errored tabs should continue running
+        :param verbose: Set the verbosity of log messages.
+        """
         self._name = name
         self._robust = robust
         self._verbose = verbose
