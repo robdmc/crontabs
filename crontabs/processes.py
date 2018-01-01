@@ -64,6 +64,14 @@ class SubProcess:
 
 
 class IOQueue:  # pragma: no cover
+    """
+    Okay, so here is something annoying.  If you spawn a python subprocess, you cannot
+    pipe stdout/stderr in the same way you can with the parent process.  People who
+    run this library probably want to be able to redirect output to logs.  The best way
+    I could figure out to handle this was to monkey patch stdout and stderr in the
+    subprocesses to be an instance of this class.  All this does is send write() messages
+    to a queue that is monitored by the parent process and prints to parent stdtou/stderr
+    """
     def __init__(self, q):
         self._q = q
 
