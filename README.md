@@ -18,6 +18,7 @@ Python has no shortage of [cron-like job scheduling libraries](https://pypi.pyth
 * **Human readable interface.**  I loved the interface provided by the [schedule](https://github.com/dbader/schedule) library and wanted something simiarly intuitive to use.
 * **Memory safe for long running jobs.** Celery workers can suffer from severe memory bloat due to the way Python manages memory.  As of 2017, the recommended solution for this was to periodically restart celery.  Crontabs runs each job in a subprocess.  The strategy for doing this will soon be updated to ensure memory bloat is not an issue.
 * **Simple solution for cron-style workflow and nothing more.**  I was only interested in supporting cron-like functionality, and wasn't interested in all the other capabilities and guarentees offered by a real task-queue solution like celery.
+* **Suggestions for improvement welcome.** If you encounter a bug or have an improvement that remains within the scope listed above, please feel free to open an issue (or even better... a PR).
 
 # Installation
 ```bash
