@@ -14,7 +14,7 @@ ways.
 
 # Why Crontabs
 Python has no shortage of [cron-like job scheduling libraries](https://pypi.python.org/pypi?%3Aaction=search&term=cron), so why create yet another.  The honest answer is that I couldn't find one that met a simple list of criteria.
-* **Simple installation with no configuration.** If I wanted an extremely robust and scalable solution, I would just have used celery. But for quick and dirty work, I didn't want the hastle of setting up and configuring a broker.  For simple jobs, I just wanted to pip install and go.
+* **Simple installation with no configuration.** An extremely robust and scalable solution to this problem already exists.  [Celery](http://www.celeryproject.org/). But for quick and dirty work, I didn't want the hastle of setting up and configuring a broker, which celery requires to do its magic.  For simple jobs, I just wanted to pip install and go.
 * **Human readable interface.**  I loved the interface provided by the [schedule](https://github.com/dbader/schedule) library and wanted something simiarly intuitive to use.
 * **Memory safe for long running jobs.** Celery workers can suffer from severe memory bloat due to the way Python manages memory.  As of 2017, the recommended solution for this was to periodically restart the workers.  Crontabs runs each job in a subprocess.  The strategy for doing this will soon be updated to ensure memory bloat is not an issue.
 * **Simple solution for cron-style workflow and nothing more.**  I was only interested in supporting cron-like functionality, and wasn't interested in all the other capabilities and guarentees offered by a real task-queue solution like celery.
