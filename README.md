@@ -1,5 +1,5 @@
 # Crontabs
-Crontabs is a small library that makes it simple to schedule python functions to run on a schedule.
+Crontabs is a small pure-python library that makes it simple to schedule python functions to run on a schedule.
 Crontabs was inspired by the excellent [schedule](https://github.com/dbader/schedule) library for python,
 
 In addition to having a slightly different API, Crontabs differs from the schedule module in the following
@@ -8,10 +8,16 @@ ways.
   * You do not need to provide your own event loop.
   * Job timing is guarenteed not to drift over time.  For example, if you specify to run a job every five minutes,
     you can rest assured that it will always run at 5, 10, 15, etc. passed the hour with no drift.
-  * The python functions are all run in child processes.  Not only does this enable asynchronous scheduling,
-    it also helps mitigate python memory problems due to the
+  * The python functions are all run in child processes.  Although not currently implemented, there are plans to update
+    subprocess management to help mitigate python memory problems due to the
     [high watermark issue](https://hbfs.wordpress.com/2013/01/08/python-memory-management-part-ii/)
 
+# Why Crontabs
+Python has no shortage of [cron-like job scheduling libraries](https://pypi.python.org/pypi?%3Aaction=search&term=cron), so why create yet another.  The honest answer is that I couldn't find one that met a simple list of criteria.
+* **Simple Installation with No Configuration.** If I wanted an extremely robust and scalable solution, I would just have used celery. But for quick and dirty work, I didn't want the hastle of setting up and configuring a broker.  For simple jobs, I just wanted to pip install and go.
+* **Human readable interface.**  I loved the interface provided by the [schedule](https://github.com/dbader/schedule) library and wanted something simiarly intuitive to use.
+* **Memory safe for long running jobs.** Celery workers can suffer from severe memory bloat due to the way Python manages memory.  As of 2017, the recommended solution for this was to periodically restart celery.  Crontabs runs each job in a subprocess which will soon be refactored to ensure this bloat does not happen.
+* **Simple solution for cron-style workflow and nothing more.**  I was only interested in supporting cron-like functionality, and wasn't interested in all the other capabilities and guarentees offered by a real task-queue solution like celery.
 
 # Installation
 ```bash
