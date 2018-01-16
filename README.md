@@ -37,7 +37,7 @@ def my_job(*args, **kwargs):
     print('args={} kwargs={} running at {}'.format(args, kwargs, datetime.now()))
 
 
-# Will run with a 5 minute interval synced to the top of the minute
+# Will run with a 5 second interval synced to the top of the minute
 Cron().schedule(
     Tab(name='run_my_job').every(seconds=5).run(my_job, 'my_arg', my_kwarg='hello')
 ).go()
