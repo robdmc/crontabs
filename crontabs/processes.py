@@ -11,23 +11,29 @@ from multiprocessing import Process, Queue
 import datetime
 import sys
 
+"""
+OKAY  I THINK I WANT TO COMPLETELY REFACTOR THIS.  I THINK PROCESS MONITOR
+SHOULD ACTUALLY RUN TABS IN THREADS.  THEN EACH TAB WILL SPAWN A DEAMON 
+SUBPROCESS WHEN IT'S TIME TO RUN IT'S PAYLOAD.
+"""
+
 
 class SubProcess:
     def __init__(
             self,
             name,
             target,
-            q_stdout,
-            q_stderr,
-            q_error,
-            robust,
+            q_stdout=None,
+            q_stderr=None,
+            q_error=None,
+            robust=True,
             args=None,
             kwargs=None,
     ):
-        # set up the io queues
-        self.q_stdout = q_stdout
-        self.q_stderr = q_stderr
-        self.q_error = q_error
+
+        self.q_stdout = self._get_or_create_queue(q_stdout)
+        self.q_stderr = self._get_or_create_queue(q_stderr)
+        self.q_error = self._get_or_create_queue(q_error)
 
         self._robust = robust
 
@@ -46,11 +52,16 @@ class SubProcess:
         # Save the kwargs to the process
         self._kwargs = kwargs or {}
 
+    def _get_or_create_queue(self, queue):
+        if queue is not None:
+            return queue
+        else:
+            return Queue()
+
     def is_alive(self):
         return self._process is not None and self._process.is_alive()
 
     def start(self):
-
         self._process = Process(
             target=wrapped_target,
             args=[
@@ -61,6 +72,10 @@ class SubProcess:
         )
         self._process.daemon = True
         self._process.start()
+
+    def join(self):
+        if self._process is not None:
+            return self._process.join()
 
 
 class IOQueue:  # pragma: no cover
@@ -99,8 +114,6 @@ def wrapped_target(target, q_stdout, q_stderr, q_error, robust, name, *args, **k
             logger.error(s)
         else:
             raise
-
-
 
         if not robust:
             q_error.put(name)
