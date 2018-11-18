@@ -9,7 +9,7 @@ import daiquiri
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from fleming import fleming
-from .processes import ProcessMonitor
+from .processes import ProcessMonitor, wrapped_target
 
 import logging
 daiquiri.setup(level=logging.INFO)
@@ -25,11 +25,15 @@ class Cron:
 
     def schedule(self, *tabs):
         self._tab_list = list(tabs)
+        # Give every tab access to the process monitor
+        for tab in self._tab_list:
+            tab.monitor = self.monitor
         return self
 
     def go(self, max_seconds=None):
         for tab in self._tab_list:
-            self.monitor.add_subprocess(tab._name, tab._get_target(), tab._robust)
+            self.monitor.add_subprocess(
+                tab._name, tab._get_target(), robust=tab._robust, restart=True)
 
         try:
             self.monitor.loop(max_seconds=max_seconds)
@@ -179,6 +183,10 @@ class Tab:
                 if self._verbose and not self._SILENCE_LOGGER:  # pragma: no cover
                     logger.info('Running')
 
+                # TODO:  I think I need to add a wrapped target run right here so that each
+                # instance of a tab runs in its own subprocess.  This means the process tree would
+                # be 3 deep.  1) the master cron process, 2) The process monitor for each tab 3) The
+                # individual instance processes
                 # run the function
                 self._func(*self._func_args, **self._func_kwargs)
 
@@ -193,6 +201,18 @@ class Tab:
                     logger.error(s)
                 else:
                     raise
+
+    # def _exec_in_sub_process(self, target, *args, **kwargs):
+    #     self._process = Process(
+    #         target=wrapped_target,
+    #         args=[
+    #                  self._target, self.q_stdout, self.q_stderr,
+    #                  self.q_error, self._robust, self._name
+    #              ] + list(self._args),
+    #         kwargs=self._kwargs
+    #     )
+    #     self._process.daemon = True
+    #     self._process.start()
 
     def _get_target(self):
         """

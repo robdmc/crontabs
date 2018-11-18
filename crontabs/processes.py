@@ -21,6 +21,7 @@ class SubProcess:
             q_stderr,
             q_error,
             robust,
+            restart=True,
             args=None,
             kwargs=None,
     ):
@@ -30,6 +31,7 @@ class SubProcess:
         self.q_error = q_error
 
         self._robust = robust
+        self._restart = restart
 
         # Setup the name of the sub process
         self._name = name
@@ -106,6 +108,18 @@ def wrapped_target(target, q_stdout, q_stderr, q_error, robust, name, *args, **k
             q_error.put(name)
         raise
 
+# def exec_in_blocking_subprocess(target, q_stdout, q_stderr, q_error, robust, name, *args, **kwargs):
+#     process = Process(
+#         target=wrapped_target,
+#         args=[
+#                  self._target, self.q_stdout, self.q_stderr,
+#                  self.q_error, self._robust, self._name
+#              ] + list(self._args),
+#         kwargs=self._kwargs
+#     )
+#     self._process.daemon = True
+#     self._process.start()
+
 
 class ProcessMonitor:
     TIMEOUT_SECONDS = .05
@@ -118,7 +132,7 @@ class ProcessMonitor:
         self.q_stderr = Queue()
         self.q_error = Queue()
 
-    def add_subprocess(self, name, func, robust, *args, **kwargs):
+    def add_subprocess(self, name, func, robust, restart, *args, **kwargs):
         sub = SubProcess(
             name,
             target=func,
@@ -126,6 +140,7 @@ class ProcessMonitor:
             q_stderr=self.q_stderr,
             q_error=self.q_error,
             robust=robust,
+            restart=restart,
             args=args,
             kwargs=kwargs
         )
@@ -161,6 +176,7 @@ class ProcessMonitor:
 
         self._is_running = True
         while self._is_running:
+            # This will actually block for TIMEOUT_SECONDS if nothing is on the error queue
             self.process_error_queue(self.q_error)
 
             if max_seconds is not None:
