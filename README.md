@@ -7,7 +7,7 @@ In addition to having a slightly different API, crontabs differs from the schedu
 ways.
 
   * You do not need to provide your own event loop.
-  * Job timing is guarenteed not to drift over time.  For example, if you specify to run a job every five minutes,
+  * Job timing is guaranteed not to drift over time.  For example, if you specify to run a job every five minutes,
     you can rest assured that it will always run at 5, 10, 15, etc. passed the hour with no drift.
   * The python functions are all run in child processes.  Although not currently implemented, there are plans to update
     subprocess management to help mitigate python memory problems due to the
@@ -18,7 +18,7 @@ Python has no shortage of [cron-like job scheduling libraries](https://pypi.pyth
 * **Simple installation with no configuration.** An extremely robust and scalable solution to this problem already exists.  [Celery](http://www.celeryproject.org/). But for quick and dirty work, I didn't want the hastle of setting up and configuring a broker, which celery requires to do its magic.  For simple jobs, I just wanted to pip install and go.
 * **Human readable interface.**  I loved the interface provided by the [schedule](https://github.com/dbader/schedule) library and wanted something simiarly intuitive to use.
 * **Memory safe for long running jobs.** Celery workers can suffer from severe memory bloat due to the way Python manages memory.  As of 2017, the recommended solution for this was to periodically restart the workers.  Crontabs runs each job in a subprocess.  The strategy for doing this will soon be updated to ensure memory bloat is not an issue.
-* **Simple solution for cron-style workflow and nothing more.**  I was only interested in supporting cron-like functionality, and wasn't interested in all the other capabilities and guarentees offered by a real task-queue solution like celery.
+* **Simple solution for cron-style workflow and nothing more.**  I was only interested in supporting cron-like functionality, and wasn't interested in all the other capabilities and guarantees offered by a real task-queue solution like celery.
 * **Suggestions for improvement welcome.** If you encounter a bug or have an improvement that remains within the scope listed above, please feel free to open an issue (or even better... a PR).
 
 # Installation
