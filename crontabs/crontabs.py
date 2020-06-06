@@ -17,6 +17,11 @@ daiquiri.setup(level=logging.INFO)
 
 
 class Cron:
+    @classmethod
+    def get_logger(self, name='crontab_log'):
+        logger = daiquiri.getLogger(name)
+        return logger
+
     def __init__(self):
         """
         A Cron object runs many "tabs" of asynchronous tasks.
@@ -50,6 +55,9 @@ class Tab:
                         non-errored tabs should continue running
         :param verbose: Set the verbosity of log messages.
         """
+        if not isinstance(name, str):
+            raise ValueError('Name argument must be a string')
+
         self._name = name
         self._robust = robust
         self._verbose = verbose
@@ -83,21 +91,23 @@ class Tab:
             raise ValueError('.starting_at() method can only take strings or datetime objects')
         return self
 
-    def excluding(self, func):
+    def excluding(self, func, name=''):
         """
         Pass a function that takes a timestamp for when the function should execute.
         It inhibits running when the function returns True.
         """
         self._exclude_func = func
+        self._exclude_name = name
 
         return self
 
-    def during(self, func):
+    def during(self, func, name=''):
         """
         Pass a function that takes a timestamp for when the function should execute.
         It will only run if the function returns true
         """
         self._during_func = func
+        self._during_name = name
 
         return self
 
@@ -160,11 +170,19 @@ class Tab:
 
     def _is_uninhibited(self, time_stamp):
         can_run = True
+        msg = 'inhibited: '
         if self._exclude_func(time_stamp):
+            if self._exclude_name:
+                msg += self._exclude_name
             can_run = False
 
         if can_run and not self._during_func(time_stamp):
+            if self._during_name:
+                msg += self._during_name
             can_run = False
+
+        if not can_run:
+            self._log(msg)
 
         return can_run
 
