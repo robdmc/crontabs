@@ -189,7 +189,7 @@ class Tab:
     def _loop(self, max_iter=None):
         if not self._SILENCE_LOGGER:  # pragma: no cover don't want to clutter tests
             logger = daiquiri.getLogger(self._name)
-            logger.info('Starting')
+            logger.info('Starting {}'.format(self._name))
         # fleming and dateutil have arguments that just differ by ending in an "s"
         fleming_kwargs = self._every_kwargs
         relative_delta_kwargs = {}
@@ -233,7 +233,7 @@ class Tab:
 
                 timestamp = datetime.datetime.now()
                 if self._is_uninhibited(timestamp):
-                    self._log('Running')
+                    self._log('Running {}'.format(self._name))
                     # run the function
                     self._func(*self._func_args, **self._func_kwargs)
 
@@ -248,6 +248,7 @@ class Tab:
                     logger.error(s)
                 else:
                     raise
+        self._log('Finishing {}'.format(self._name))
 
     def _get_target(self):
         """
