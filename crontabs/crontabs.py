@@ -57,6 +57,8 @@ class Tab:
         self._func = None
         self._func_args = None
         self._func_kwargs = None
+        self._exclude_func = lambda t: False
+        self._during_func = lambda t: True
 
     def starting_at(self, datetime_or_str):
         """
@@ -72,6 +74,24 @@ class Tab:
             self._starting_at = datetime_or_str
         else:
             raise ValueError('.starting_at() method can only take strings or datetime objects')
+        return self
+
+    def excluding(self, func):
+        """
+        Pass a function that takes a timestamp for when the function should execute.
+        It inhibits running when the function returns True.
+        """
+        self._exclude_func = func
+
+        return self
+
+    def during(self, func):
+        """
+        Pass a function that takes a timestamp for when the function should execute.
+        It will only run if the function returns true
+        """
+        self._during_func = func
+        
         return self
 
     def every(self, **kwargs):
@@ -131,6 +151,16 @@ class Tab:
 
         return out_kwargs
 
+    def _is_uninhibited(self, time_stamp):
+        can_run = True
+        if self._exclude_func(time_stamp):
+            can_run = False
+
+        if can_run and not self._during_func(time_stamp):
+            can_run = False
+
+        return can_run
+
     def _loop(self, max_iter=None):
         if not self._SILENCE_LOGGER:  # pragma: no cover don't want to clutter tests
             logger = daiquiri.getLogger(self._name)
@@ -176,11 +206,13 @@ class Tab:
                 sleep_seconds = (next_time - now).total_seconds()
                 time.sleep(sleep_seconds)
 
-                if self._verbose and not self._SILENCE_LOGGER:  # pragma: no cover
-                    logger.info('Running')
+                timestamp = datetime.datetime.now()
+                if self._is_uninhibited(timestamp):
+                    if self._verbose and not self._SILENCE_LOGGER:  # pragma: no cover
+                        logger.info('Running')
 
-                # run the function
-                self._func(*self._func_args, **self._func_kwargs)
+                    # run the function
+                    self._func(*self._func_args, **self._func_kwargs)
 
             except KeyboardInterrupt:  # pragma: no cover
                 pass

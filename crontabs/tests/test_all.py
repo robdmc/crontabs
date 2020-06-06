@@ -1,5 +1,6 @@
 from collections import Counter
 from crontabs import Cron, Tab
+from mock import MagicMock
 from unittest import TestCase
 import datetime
 import time
@@ -178,6 +179,25 @@ class TestCrontabs(TestCase):
                 elapsed = (time - starting).total_seconds()
                 self.assertTrue(elapsed > 2)
                 self.assertTrue(elapsed < 3)
+
+    def test_excluding(self):
+        # Test base case
+        cron = Cron()
+        cron.schedule(
+            Tab('base_case', verbose=True).every(seconds=1).run(time_logger, 'base_case'),
+            Tab('d+').every(seconds=1).during(lambda t: True).run(time_logger, 'd+'),
+            Tab('d-').every(seconds=1).during(lambda t: False).run(time_logger, 'd-'),
+            Tab('e+').every(seconds=1).excluding(lambda t: True).run(time_logger, 'e+'),
+            Tab('e-').every(seconds=1).excluding(lambda t: False).run(time_logger, 'e-'),
+        )
+        
+        with PrintCatcher(stream='stdout') as stdout_catcher:
+            cron.go(max_seconds=1.5)
+
+        self.assertTrue('d+' in stdout_catcher.text)
+        self.assertFalse('d-' in stdout_catcher.text)
+        self.assertFalse('e+' in stdout_catcher.text)
+        self.assertTrue('e-' in stdout_catcher.text)
 
 
 class TestRobustness(TestCase):
