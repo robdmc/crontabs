@@ -94,7 +94,7 @@ Cron().schedule(
 git clone git@github.com:robdmc/crontabs.git
 cd crontabs
 pip install -e .[dev]
-py.test -s -n 10
+py.test -s -n 8   # Might need to change the -n amount to pass
 ```
 
 ___

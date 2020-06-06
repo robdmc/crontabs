@@ -2,6 +2,7 @@
 Module for manageing crontabs interface
 """
 import datetime
+import functools
 import time
 import traceback
 
@@ -40,7 +41,7 @@ class Cron:
 class Tab:
     _SILENCE_LOGGER = False
 
-    def __init__(self, name, robust=True, verbose=True):
+    def __init__(self, name, robust=True, verbose=True, memory_friendly=False):
         """
         Schedules a Tab entry in the cron runner
         :param name:  Every tab must have a string name
@@ -59,6 +60,7 @@ class Tab:
         self._func_kwargs = None
         self._exclude_func = lambda t: False
         self._during_func = lambda t: True
+        self._memory_friendly = memory_friendly
 
     def _log(self, msg):
         if self._verbose and not self._SILENCE_LOGGER:  # pragma: no cover
@@ -236,4 +238,10 @@ class Tab:
         """
         if None in [self._func, self._func_kwargs, self._func_kwargs, self._every_kwargs]:
             raise ValueError('You must call the .every() and .run() methods on every tab.')
-        return self._loop
+
+        if self._memory_friendly:  # pragma: no cover  TODO: need to find a way to test this
+            target = functools.partial(self._loop, max_iter=1)
+        else:  # pragma: no cover  TODO: need to find a way to test this
+            target = self._loop
+
+        return target
