@@ -35,7 +35,7 @@ class Cron:
 
     def go(self, max_seconds=None):
         for tab in self._tab_list:
-            self.monitor.add_subprocess(tab._name, tab._get_target(), tab._robust)
+            self.monitor.add_subprocess(tab._name, tab._get_target(), tab._robust, tab._until)
 
         try:
             self.monitor.loop(max_seconds=max_seconds)
@@ -69,11 +69,21 @@ class Tab:
         self._exclude_func = lambda t: False
         self._during_func = lambda t: True
         self._memory_friendly = memory_friendly
+        self._until = None
+        self._lasting_delta = None
 
     def _log(self, msg):
         if self._verbose and not self._SILENCE_LOGGER:  # pragma: no cover
             logger = daiquiri.getLogger(self._name)
             logger.info(msg)
+
+    def _process_date(self, datetime_or_str):
+        if isinstance(datetime_or_str, str):
+            return parse(datetime_or_str)
+        elif isinstance(datetime_or_str, datetime.datetime):
+            return datetime_or_str
+        else:
+            raise ValueError('.starting_at() and until() method can only take strings or datetime objects')
 
     def starting_at(self, datetime_or_str):
         """
@@ -83,13 +93,23 @@ class Tab:
         :param datetime_or_str: a datetime object or a string that dateutil.parser can understand
         :return: self
         """
-        if isinstance(datetime_or_str, str):
-            self._starting_at = parse(datetime_or_str)
-        elif isinstance(datetime_or_str, datetime.datetime):
-            self._starting_at = datetime_or_str
-        else:
-            raise ValueError('.starting_at() method can only take strings or datetime objects')
+        self._starting_at = self._process_date(datetime_or_str)
         return self
+
+    def until(self, datetime_or_str):
+        """
+        Set the starting time for the cron job.  If not specified, the starting time will always
+        be the beginning of the interval that is current when the cron is started.
+
+        :param datetime_or_str: a datetime object or a string that dateutil.parser can understand
+        :return: self
+        """
+        self._until = self._process_date(datetime_or_str)
+        return self
+
+    def lasting(self, **kwargs):
+        relative_delta_kwargs = {k + 's': v for (k, v) in kwargs.items()}
+        self._lasting_delta = relativedelta(**relative_delta_kwargs)
 
     def excluding(self, func, name=''):
         """
@@ -262,5 +282,10 @@ class Tab:
             target = functools.partial(self._loop, max_iter=1)
         else:  # pragma: no cover  TODO: need to find a way to test this
             target = self._loop
+
+        if self._lasting_delta is not None:
+            self._until = 
+
+        
 
         return target

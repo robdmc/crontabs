@@ -21,6 +21,7 @@ class SubProcess:
             q_stderr,
             q_error,
             robust,
+            until=None,
             args=None,
             kwargs=None,
     ):
@@ -30,6 +31,7 @@ class SubProcess:
         self.q_error = q_error
 
         self._robust = robust
+        self._until = until
 
         # Setup the name of the sub process
         self._name = name
@@ -45,6 +47,19 @@ class SubProcess:
 
         # Save the kwargs to the process
         self._kwargs = kwargs or {}
+
+        self._has_logged_expiration = False
+
+    @property
+    def expired(self):
+        expired = False
+        if self._until is not None and self._until < datetime.datetime.now():
+            expired = True
+            if not self._has_logged_expiration:
+                self._has_logged_expiration = True
+                logger = daiquiri.getLogger(self._name)
+                logger.info('Process expired and will no longer run')
+        return expired
 
     def is_alive(self):
         return self._process is not None and self._process.is_alive()
@@ -117,7 +132,7 @@ class ProcessMonitor:
         self.q_stderr = Queue()
         self.q_error = Queue()
 
-    def add_subprocess(self, name, func, robust, *args, **kwargs):
+    def add_subprocess(self, name, func, robust, until, *args, **kwargs):
         sub = SubProcess(
             name,
             target=func,
@@ -125,6 +140,7 @@ class ProcessMonitor:
             q_stderr=self.q_stderr,
             q_error=self.q_error,
             robust=robust,
+            until=until,
             args=args,
             kwargs=kwargs
         )
@@ -166,7 +182,7 @@ class ProcessMonitor:
                 if (datetime.datetime.now() - loop_started).total_seconds() > max_seconds:
                     break
             for subprocess in self._subprocesses:
-                if not subprocess.is_alive():
+                if not subprocess.is_alive() and not subprocess.expired:
                     subprocess.start()
 
             self.process_io_queue(self.q_stdout, sys.stdout)
