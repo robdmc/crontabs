@@ -4,7 +4,7 @@ import daiquiri
 
 try:  # pragma: no cover
     from Queue import Empty
-except:  # flake8: noqa  pragma: no cover
+except:  # noqa  pragma: no cover
     from queue import Empty
 
 from multiprocessing import Process, Queue
@@ -54,8 +54,8 @@ class SubProcess:
         self._process = Process(
             target=wrapped_target,
             args=[
-                     self._target, self.q_stdout, self.q_stderr,
-                     self.q_error, self._robust, self._name
+                self._target, self.q_stdout, self.q_stderr,
+                self.q_error, self._robust, self._name
             ] + list(self._args),
             kwargs=self._kwargs
         )
@@ -92,15 +92,14 @@ def wrapped_target(target, q_stdout, q_stderr, q_error, robust, name, *args, **k
 
     try:
         target(*args, **kwargs)
-    except:
+
+    except:  # noqa
         if not robust:
             s = 'Error in tab\n' + traceback.format_exc()
             logger = daiquiri.getLogger(name)
             logger.error(s)
         else:
             raise
-
-
 
         if not robust:
             q_error.put(name)
@@ -157,7 +156,7 @@ class ProcessMonitor:
         """
         Main loop for the process. This will run continuously until maxiter
         """
-        loop_started =  datetime.datetime.now()
+        loop_started = datetime.datetime.now()
 
         self._is_running = True
         while self._is_running:

@@ -1,6 +1,5 @@
 from collections import Counter
 from crontabs import Cron, Tab
-from mock import MagicMock
 from unittest import TestCase
 import datetime
 import time
@@ -190,7 +189,7 @@ class TestCrontabs(TestCase):
             Tab('e+').every(seconds=1).excluding(lambda t: True).run(time_logger, 'e+'),
             Tab('e-').every(seconds=1).excluding(lambda t: False).run(time_logger, 'e-'),
         )
-        
+
         with PrintCatcher(stream='stdout') as stdout_catcher:
             cron.go(max_seconds=1.5)
 

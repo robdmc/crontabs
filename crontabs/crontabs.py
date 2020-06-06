@@ -60,6 +60,11 @@ class Tab:
         self._exclude_func = lambda t: False
         self._during_func = lambda t: True
 
+    def _log(self, msg):
+        if self._verbose and not self._SILENCE_LOGGER:  # pragma: no cover
+            logger = daiquiri.getLogger(self._name)
+            logger.info(msg)
+
     def starting_at(self, datetime_or_str):
         """
         Set the starting time for the cron job.  If not specified, the starting time will always
@@ -91,7 +96,7 @@ class Tab:
         It will only run if the function returns true
         """
         self._during_func = func
-        
+
         return self
 
     def every(self, **kwargs):
@@ -208,9 +213,7 @@ class Tab:
 
                 timestamp = datetime.datetime.now()
                 if self._is_uninhibited(timestamp):
-                    if self._verbose and not self._SILENCE_LOGGER:  # pragma: no cover
-                        logger.info('Running')
-
+                    self._log('Running')
                     # run the function
                     self._func(*self._func_args, **self._func_kwargs)
 
