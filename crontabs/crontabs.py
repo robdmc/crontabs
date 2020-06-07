@@ -54,6 +54,7 @@ class Tab:
                         A non robust tab will not be restarted, but all other
                         non-errored tabs should continue running
         :param verbose: Set the verbosity of log messages.
+        :memory friendly: If set to true, each iteration will be run in separate process
         """
         if not isinstance(name, str):
             raise ValueError('Name argument must be a string')
@@ -98,8 +99,8 @@ class Tab:
 
     def until(self, datetime_or_str):
         """
-        Set the starting time for the cron job.  If not specified, the starting time will always
-        be the beginning of the interval that is current when the cron is started.
+        Run the tab until the specified time is reached.  At that point, deactivate the expired
+        tab so that it no longer runs.
 
         :param datetime_or_str: a datetime object or a string that dateutil.parser can understand
         :return: self
@@ -108,6 +109,10 @@ class Tab:
         return self
 
     def lasting(self, **kwargs):
+        """
+        Run the tab so that it lasts this long.  The argument structure is exactly the same
+        as that of the .every() method
+        """
         relative_delta_kwargs = {k if k.endswith('s') else k + 's': v for (k, v) in kwargs.items()}
         self._lasting_delta = relativedelta(**relative_delta_kwargs)
         return self
@@ -116,6 +121,8 @@ class Tab:
         """
         Pass a function that takes a timestamp for when the function should execute.
         It inhibits running when the function returns True.
+        Optionally, add a name to the exclusion.  This name will act as an explanation
+        in the log for why the exclusion was made.
         """
         self._exclude_func = func
         self._exclude_name = name
@@ -125,7 +132,9 @@ class Tab:
     def during(self, func, name=''):
         """
         Pass a function that takes a timestamp for when the function should execute.
-        It will only run if the function returns true
+        It will only run if the function returns true.
+        Optionally, add a name.  This name will act as an explanation in the log for why
+        any exclusions were made outside the "during" specification.
         """
         self._during_func = func
         self._during_name = name
@@ -135,7 +144,7 @@ class Tab:
     def every(self, **kwargs):
         """
         Specify the interval at which you want the job run.  Takes exactly one keyword argument.
-        That argument must be one named one of [seconds, minutes, hours, days, weeks, months, years] or
+        That argument must be one named one of [second, minute, hour, day, week, month, year] or
         their plural equivalents.
 
         :param kwargs: Exactly one keyword argument
@@ -295,6 +304,22 @@ class Tab:
         if self._lasting_delta is not None:
             self._until = datetime.datetime.now() + self._lasting_delta
 
-        
-
         return target
+
+
+"""
+Cron:
+    get_logger
+    schedule
+    go
+
+Tab:
+    during
+    every
+    excluding
+    lasting
+    run
+    starting
+    until
+
+"""

@@ -9,15 +9,15 @@ ways.
   * You do not need to provide your own event loop.
   * Job timing is guaranteed not to drift over time.  For example, if you specify to run a job every five minutes,
     you can rest assured that it will always run at 5, 10, 15, etc. passed the hour with no drift.
-  * The python functions are all run in child processes.  Although not currently implemented, there are plans to update
-    subprocess management to help mitigate python memory problems due to the
+  * The python functions are all run in child processes.  A memory-friendly flag is available to run each
+    iteration of your task in its own process thereby mitigating memory problems du to Python's
     [high watermark issue](https://hbfs.wordpress.com/2013/01/08/python-memory-management-part-ii/)
 
 # Why Crontabs
 Python has no shortage of [cron-like job scheduling libraries](https://pypi.python.org/pypi?%3Aaction=search&term=cron), so why create yet another.  The honest answer is that I couldn't find one that met a simple list of criteria.
 * **Simple installation with no configuration.** An extremely robust and scalable solution to this problem already exists.  [Celery](http://www.celeryproject.org/). But for quick and dirty work, I didn't want the hastle of setting up and configuring a broker, which celery requires to do its magic.  For simple jobs, I just wanted to pip install and go.
 * **Human readable interface.**  I loved the interface provided by the [schedule](https://github.com/dbader/schedule) library and wanted something similarly intuitive to use.
-* **Memory safe for long running jobs.** Celery workers can suffer from severe memory bloat due to the way Python manages memory.  As of 2017, the recommended solution for this was to periodically restart the workers.  Crontabs runs each job in a subprocess.  The strategy for doing this will soon be updated to ensure memory bloat is not an issue.
+* **Memory safe for long running jobs.** Celery workers can suffer from severe memory bloat due to the way Python manages memory.  As of 2017, the recommended solution for this was to periodically restart the workers.  Crontabs runs each job in a subprocess.  It can optionally also run each iteration of a task in it's own process thereby mitigating the memory bloat issue.
 * **Simple solution for cron-style workflow and nothing more.**  I was only interested in supporting cron-like functionality, and wasn't interested in all the other capabilities and guarantees offered by a real task-queue solution like celery.
 * **Suggestions for improvement welcome.** If you encounter a bug or have an improvement that remains within the scope listed above, please feel free to open an issue (or even better... a PR).
 
@@ -88,6 +88,80 @@ Cron().schedule(
 # max_seconds starts from the moment go is called.  Pad for future run times accordingly.
 ).go(max_seconds=60)
 ```
+
+# Tab API with examples
+The api for the `Tab` class is designed to be composable and readable in plain English.  It supports
+the following "verbs" by invoking methods.
+
+| method | Description |
+| --- | --- |
+| `.run()` |[**Required**] Specify the function to run. |
+| `.every()` |[**Required**] Specify the interval between function calls.|
+| `.starting()` | [**Optional**] Specify an explicit time for the function calls to begin.|
+| `.lasting()` | [**Optional**] Specify how long the iteration is to take place.|
+| `.until()` | [**Optional**] Specify an explicit time past which the iteration will stop
+| `.during()` | [**Optional**] Specify time conditions under which the function will run
+| `.excluding()` | [**Optional**] Specify time conditions under which the function will be inhibited
+
+## Run a job indefinitely
+```python
+from crontabs import Cron, Tab
+from datetime import datetime
+
+
+def my_job(name):
+    print('Running function with name={}'.format(name))
+
+
+Cron().schedule(
+    Tab(name='forever', verbose=False).every(seconds=5).run(my_job, 'my_func'),
+).go()
+
+```
+
+## Run one job indefinitely, another for thirty seconds, and another until 1/1/2030
+```python
+from crontabs import Cron, Tab
+from datetime import datetime
+
+
+def my_job(name):
+    print('Running function with name={}'.format(name))
+
+
+Cron().schedule(
+    Tab(name='forever').run(my_job, 'forever_job').every(seconds=5),
+    Tab(name='for_thirty').run(my_job, 'mortal_job').every(seconds=5).lasting(seconds=30),
+    Tab(name='real_long').run(my_job, 'long_job').every(seconds=5).until('1/1/2030'),
+).go()
+
+```
+
+## Run job every half hour from 9AM to 5PM excluding weekends
+```python
+from crontabs import Cron, Tab
+from datetime import datetime
+
+
+def my_job(name):
+    print('Running function with name={}'.format(name))
+
+
+def business_hours(timestamp):
+    return 9 <= timestamp.hour < 17
+
+def weekends(timestamp):
+    return timestamp.day > 4
+
+
+# Run a job every 30 minutes during weekdays.  Stop crontabs after it has been running for a year.
+# This will indiscriminately kill every Tab it owns at expriation 
+Cron().schedule(
+    Tab(name='my_job').run(my_job, 'my_job').every(minutes=30).during(business_hours).excluding(weekends),
+).go(max_seconds=3600 * 24 * 365)
+
+```
+
 
 # Run test suite with
 ```bash
