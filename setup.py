@@ -44,8 +44,8 @@ extras_require = {
 setup(
     name='crontabs',
     version=get_version(),
-    description='',
-    long_description=open('README.md').read(),
+    description='Simple job scheduling for python',
+    long_description='Simple job scheduling for python',
     url='https://github.com/robdmc/crontabs',
     author='Rob deCarvalho',
     author_email='unlisted@unlisted.net',
