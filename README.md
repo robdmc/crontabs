@@ -161,7 +161,7 @@ def business_hours(timestamp):
     return 9 <= timestamp.hour < 17
 
 def weekends(timestamp):
-    return timestamp.day > 4
+    return timestamp.weekday() > 4
 
 
 # Run a job every 30 minutes during weekdays.  Stop crontabs after it has been running for a year.
