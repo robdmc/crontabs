@@ -35,8 +35,8 @@ class Cron:
 
     def go(self, max_seconds=None):
         for tab in self._tab_list:
-            self.monitor.add_subprocess(tab._name, tab._get_target(), tab._robust, tab._until)
-
+            target = tab._get_target()
+            self.monitor.add_subprocess(tab._name, target, tab._robust, tab._until)
         try:
             self.monitor.loop(max_seconds=max_seconds)
         except KeyboardInterrupt:  # pragma: no cover
@@ -61,7 +61,7 @@ class Tab:
         self._name = name
         self._robust = robust
         self._verbose = verbose
-        self._starting_at = None
+        self._starting = None
         self._every_kwargs = None
         self._func = None
         self._func_args = None
@@ -83,9 +83,9 @@ class Tab:
         elif isinstance(datetime_or_str, datetime.datetime):
             return datetime_or_str
         else:
-            raise ValueError('.starting_at() and until() method can only take strings or datetime objects')
+            raise ValueError('.starting() and until() method can only take strings or datetime objects')
 
-    def starting_at(self, datetime_or_str):
+    def starting(self, datetime_or_str):
         """
         Set the starting time for the cron job.  If not specified, the starting time will always
         be the beginning of the interval that is current when the cron is started.
@@ -93,7 +93,7 @@ class Tab:
         :param datetime_or_str: a datetime object or a string that dateutil.parser can understand
         :return: self
         """
-        self._starting_at = self._process_date(datetime_or_str)
+        self._starting = self._process_date(datetime_or_str)
         return self
 
     def until(self, datetime_or_str):
@@ -108,8 +108,9 @@ class Tab:
         return self
 
     def lasting(self, **kwargs):
-        relative_delta_kwargs = {k + 's': v for (k, v) in kwargs.items()}
+        relative_delta_kwargs = {k if k.endswith('s') else k + 's': v for (k, v) in kwargs.items()}
         self._lasting_delta = relativedelta(**relative_delta_kwargs)
+        return self
 
     def excluding(self, func, name=''):
         """
@@ -134,7 +135,7 @@ class Tab:
     def every(self, **kwargs):
         """
         Specify the interval at which you want the job run.  Takes exactly one keyword argument.
-        That argument must be one named one of [second, minute, hour, day, week, month, year] or
+        That argument must be one named one of [seconds, minutes, hours, days, weeks, months, years] or
         their plural equivalents.
 
         :param kwargs: Exactly one keyword argument
@@ -179,6 +180,8 @@ class Tab:
             'year': 'year',
         }
 
+        kwargs = {k if k.endswith('s') else k + 's': v for (k, v) in kwargs.items()}
+
         out_kwargs = {}
         for key in kwargs.keys():
             out_key = allowed_key_map.get(key.lower())
@@ -219,8 +222,8 @@ class Tab:
             relative_delta_kwargs[k + 's'] = v
 
         # if a starting time was given use the floored second of that time as the previous time
-        if self._starting_at is not None:
-            previous_time = fleming.floor(self._starting_at, second=1)
+        if self._starting is not None:
+            previous_time = fleming.floor(self._starting, second=1)
 
         # otherwise use the interval floored value of now as the previous time
         else:
@@ -251,10 +254,16 @@ class Tab:
                 sleep_seconds = (next_time - now).total_seconds()
                 time.sleep(sleep_seconds)
 
+                # See what time it is on wakeup
                 timestamp = datetime.datetime.now()
+
+                # If passed until date, break out of here
+                if self._until is not None and timestamp > self._until:
+                    break
+
+                # If not inhibited, run the function
                 if self._is_uninhibited(timestamp):
                     self._log('Running {}'.format(self._name))
-                    # run the function
                     self._func(*self._func_args, **self._func_kwargs)
 
             except KeyboardInterrupt:  # pragma: no cover
@@ -284,7 +293,7 @@ class Tab:
             target = self._loop
 
         if self._lasting_delta is not None:
-            self._until = 
+            self._until = datetime.datetime.now() + self._lasting_delta
 
         
 

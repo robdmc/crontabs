@@ -13,7 +13,7 @@ Cron().schedule(
         name='future_job'
     ).every(
         seconds=5
-    ).starting_at(
+    ).starting(
         '12/27/2017 16:55'
     ).run(
         my_job, 'fast', seconds=5
@@ -39,7 +39,7 @@ Cron().schedule(
 #
 # # cron.tab(
 # #     [
-# #         Tab('one').starting_at(datetime.datetime.now()).every(minutes=1).run(func, 1),
+# #         Tab('one').starting(datetime.datetime.now()).every(minutes=1).run(func, 1),
 # #         Tab('two').every(minutes=1).run(func, 1, extra='base'),
 # #         # Tab('three').every(seconds=2).run(func1),
 # #         # Tab('four').every(seconds=4).run(func2),

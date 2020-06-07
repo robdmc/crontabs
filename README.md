@@ -80,7 +80,7 @@ Cron().schedule(
         name='future_job'
     ).every(
         seconds=5
-    ).starting_at(
+    ).starting(
         '12/27/2017 16:45'  # This argument can either be parsable text or datetime object.
     ).run(
         my_job, 'fast', seconds=5

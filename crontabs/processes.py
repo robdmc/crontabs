@@ -180,6 +180,8 @@ class ProcessMonitor:
 
             if max_seconds is not None:
                 if (datetime.datetime.now() - loop_started).total_seconds() > max_seconds:
+                    logger = daiquiri.getLogger('crontabs')
+                    logger.info('Crontabs reached specified timeout.  Exiting.')
                     break
             for subprocess in self._subprocesses:
                 if not subprocess.is_alive() and not subprocess.expired:
