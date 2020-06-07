@@ -167,9 +167,18 @@ def weekends(timestamp):
 # Run a job every 30 minutes during weekdays.  Stop crontabs after it has been running for a year.
 # This will indiscriminately kill every Tab it owns at that time.
 Cron().schedule(
-    Tab(name='my_job').run(my_job, 'my_job').every(minutes=30).during(business_hours).excluding(weekends),
+    Tab(
+        name='my_job'
+    ).run(
+        my_job, 'my_job'
+    ).every(
+        minutes=30
+    ).during(
+        business_hours
+    ).excluding(
+        weekends
+    )
 ).go(max_seconds=3600 * 24 * 365)
-
 ```
 
 
