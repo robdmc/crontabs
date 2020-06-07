@@ -123,7 +123,7 @@ def my_job(name):
 
 
 Cron().schedule(
-    Tab(name='forever', verbose=False).every(seconds=5).run(my_job, 'my_func'),
+    Tab(name='forever').every(seconds=5).run(my_job, 'my_func'),
 ).go()
 
 ```
