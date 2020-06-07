@@ -98,7 +98,7 @@ the following "verbs" by invoking methods.
 | `.run()` |[**Required**] Specify the function to run. |
 | `.every()` |[**Required**] Specify the interval between function calls.|
 | `.starting()` | [**Optional**] Specify an explicit time for the function calls to begin.|
-| `.lasting()` | [**Optional**] Specify how long the iteration is to take place.|
+| `.lasting()` | [**Optional**] Specify how long the task will continue being iterated.|
 | `.until()` | [**Optional**] Specify an explicit time past which the iteration will stop
 | `.during()` | [**Optional**] Specify time conditions under which the function will run
 | `.excluding()` | [**Optional**] Specify time conditions under which the function will be inhibited
