@@ -305,21 +305,3 @@ class Tab:
             self._until = datetime.datetime.now() + self._lasting_delta
 
         return target
-
-
-"""
-Cron:
-    get_logger
-    schedule
-    go
-
-Tab:
-    during
-    every
-    excluding
-    lasting
-    run
-    starting
-    until
-
-"""
