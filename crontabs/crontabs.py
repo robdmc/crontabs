@@ -5,6 +5,7 @@ import datetime
 import functools
 import time
 import traceback
+import warnings
 
 import daiquiri
 from dateutil.parser import parse
@@ -96,6 +97,10 @@ class Tab:
         """
         self._starting = self._process_date(datetime_or_str)
         return self
+
+    def starting_at(self, datetime_or_str):
+        warnings.warn('.starting_at() is depricated.  Use .starting() instead')
+        return self.starting(datetime_or_str)
 
     def until(self, datetime_or_str):
         """
