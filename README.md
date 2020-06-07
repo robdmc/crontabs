@@ -89,6 +89,15 @@ Cron().schedule(
 ).go(max_seconds=60)
 ```
 
+# Cron API
+The `Cron` class has a very small api
+
+| method | Description |
+| --- | --- |
+| `.schedule()` |[**Required**] Specify the different jobs you want using `Tab`instances|
+| `.go()` | [**Required**] Start the crontab manager to run all specified tasks|
+| `.get_logger()| A class method you can use to get an instance of the crontab logger|
+
 # Tab API with examples
 The api for the `Tab` class is designed to be composable and readable in plain English.  It supports
 the following "verbs" by invoking methods.
@@ -142,9 +151,10 @@ Cron().schedule(
 from crontabs import Cron, Tab
 from datetime import datetime
 
-
 def my_job(name):
-    print('Running function with name={}'.format(name))
+    # Grab an instance of the crontab logger and write to it.
+    logger = Cron.get_logger()
+    logger.info('Running function with name={}'.format(name))
 
 
 def business_hours(timestamp):
