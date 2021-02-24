@@ -68,11 +68,17 @@ class Tab:
         self._func = None
         self._func_args = None
         self._func_kwargs = None
-        self._exclude_func = lambda t: False
-        self._during_func = lambda t: True
+        self._exclude_func = self._default_exclude_func
+        self._during_func = self._default_during_func
         self._memory_friendly = memory_friendly
         self._until = None
         self._lasting_delta = None
+
+    def _default_exclude_func(self, t):
+        return False
+
+    def _default_during_func(self, t):
+        return True
 
     def _log(self, msg):
         if self._verbose and not self._SILENCE_LOGGER:  # pragma: no cover

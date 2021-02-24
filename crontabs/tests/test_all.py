@@ -1,5 +1,6 @@
 from collections import Counter
 from crontabs import Cron, Tab
+import functools
 from unittest import TestCase
 import datetime
 import time
@@ -184,14 +185,14 @@ class TestCrontabs(TestCase):
         cron = Cron()
         cron.schedule(
             Tab('base_case', verbose=True).every(seconds=1).run(time_logger, 'base_case'),
-            Tab('d+').every(seconds=1).during(lambda t: True).run(time_logger, 'd+'),
-            Tab('d-').every(seconds=1).during(lambda t: False).run(time_logger, 'd-'),
-            Tab('e+').every(seconds=1).excluding(lambda t: True).run(time_logger, 'e+'),
-            Tab('e-').every(seconds=1).excluding(lambda t: False).run(time_logger, 'e-'),
+            Tab('d+').every(seconds=1).during(return_true).run(time_logger, 'd+'),
+            Tab('d-').every(seconds=1).during(return_false).run(time_logger, 'd-'),
+            Tab('e+').every(seconds=1).excluding(return_true).run(time_logger, 'e+'),
+            Tab('e-').every(seconds=1).excluding(return_false).run(time_logger, 'e-'),
         )
 
         with PrintCatcher(stream='stdout') as stdout_catcher:
-            cron.go(max_seconds=1.5)
+            cron.go(max_seconds=2)
 
         self.assertTrue('d+' in stdout_catcher.text)
         self.assertFalse('d-' in stdout_catcher.text)
@@ -199,23 +200,32 @@ class TestCrontabs(TestCase):
         self.assertTrue('e-' in stdout_catcher.text)
 
 
+def return_true(*args, **kwargs):
+    return True
+
+
+def return_false(*args, **kwargs):
+    return False
+
+
+def timed_error(then):
+    now = datetime.datetime.now()
+    if then + datetime.timedelta(seconds=3) < now < then + datetime.timedelta(seconds=6):
+        print('timed_error_failure')
+        raise ExpectedException('This exception is expected in tests. Don\'t worry about it.')
+    else:
+        print('timed_error_success')
+
+
 class TestRobustness(TestCase):
     def test_robust_case(self):
 
         then = datetime.datetime.now()
 
-        def timed_error():  # pragma: no cover
-            now = datetime.datetime.now()
-            if then + datetime.timedelta(seconds=3) < now < then + datetime.timedelta(seconds=6):
-                print('timed_error_failure')
-                raise ExpectedException('This exception is expected in tests. Don\'t worry about it.')
-            else:
-                print('timed_error_success')
-
         cron = Cron()
         cron.schedule(
             Tab('one_sec', verbose=False).every(seconds=1).run(time_logger, 'running_time_logger'),
-            Tab('two_sec', verbose=False, robust=True).every(seconds=1).run(timed_error)
+            Tab('two_sec', verbose=False, robust=True).every(seconds=1).run(functools.partial(timed_error, then))
         )
         with PrintCatcher(stream='stdout') as catcher:
             cron.go(max_seconds=10)
@@ -231,18 +241,10 @@ class TestRobustness(TestCase):
 
         then = datetime.datetime.now()
 
-        def timed_error():
-            now = datetime.datetime.now()
-            if then + datetime.timedelta(seconds=3) < now < then + datetime.timedelta(seconds=6):
-                print('timed_error_failure')
-                raise ExpectedException('This exception is expected in tests. Don\'t worry about it.')
-            else:
-                print('timed_error_success')
-
         cron = Cron()
         cron.schedule(
             Tab('one_sec', verbose=False).every(seconds=1).run(time_logger, 'running_time_logger'),
-            Tab('two_sec', verbose=False, robust=False).every(seconds=1).run(timed_error)
+            Tab('two_sec', verbose=False, robust=False).every(seconds=1).run(functools.partial(timed_error, then))
         )
         with PrintCatcher(stream='stdout') as catcher:
             cron.go(max_seconds=10)
