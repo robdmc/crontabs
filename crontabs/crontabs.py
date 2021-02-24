@@ -241,13 +241,8 @@ class Tab:
         for k, v in self._every_kwargs.items():
             relative_delta_kwargs[k + 's'] = v
 
-        # if a starting time was given use the floored second of that time as the previous time
-        if self._starting is not None:
-            previous_time = fleming.floor(self._starting, second=1)
-
-        # otherwise use the interval floored value of now as the previous time
-        else:
-            previous_time = fleming.floor(datetime.datetime.now(), **fleming_kwargs)
+        # Previous time is the latest interval boundary that has already happened
+        previous_time = fleming.floor(datetime.datetime.now(), **fleming_kwargs)
 
         # keep track of iterations
         n_iter = 0

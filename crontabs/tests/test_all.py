@@ -1,12 +1,14 @@
 from collections import Counter
-from crontabs import Cron, Tab
-import functools
 from unittest import TestCase
 import datetime
-import time
+import functools
 import sys
+import time
 
+from crontabs import Cron, Tab
 from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
+import fleming
 
 Tab._SILENCE_LOGGER = True
 
@@ -177,7 +179,6 @@ class TestCrontabs(TestCase):
                 words = line.split()
                 time = parse('T'.join(words[1:]))
                 elapsed = (time - starting).total_seconds()
-                self.assertTrue(elapsed > 2)
                 self.assertTrue(elapsed < 3)
 
     def test_excluding(self):
@@ -255,3 +256,39 @@ class TestRobustness(TestCase):
         self.assertEqual(success_count, 3)
         self.assertEqual(failure_count, 1)
         self.assertEqual(time_logger_count, 10)
+
+
+def func():
+    print('func_was_called')
+
+
+class TestStartingOnNextInterval(TestCase):
+
+    def test_starts_on_next(self):
+        second = 0
+        interval_seconds = 5
+        while second % interval_seconds == 0:
+            now = datetime.datetime.now()
+            second = now.second
+
+        epoch = fleming.floor(now, second=interval_seconds)
+        then = epoch + relativedelta(seconds=interval_seconds)
+
+        cron = Cron().schedule(
+            Tab(
+                name='pusher',
+                robust=False,
+                memory_friendly=False,
+            ).run(
+                func,
+            ).starting(
+                then
+            ).every(
+                seconds=5
+            )
+        )
+
+        with PrintCatcher(stream='stdout') as catcher:
+            cron.go(max_seconds=5)
+
+        assert('func_was_called' in catcher.text)
