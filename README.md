@@ -1,4 +1,10 @@
 # Crontabs
+
+---
+**NOTE:**. I've recently discovered the [Rocketry](https://github.com/Miksus/rocketry/) project, which you should probably use instead of crontabs.  It is a better solution to what I was trying to achieve.
+---
+
+
 Think of crontabs as a quick-and-dirty solution you can throw into one-off python scripts to execute tasks on a cron-like schedule.
 
 Crontabs is a small pure-python library that was inspired by the excellent [schedule](https://github.com/dbader/schedule) library for python.
