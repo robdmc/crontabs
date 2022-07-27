@@ -4,8 +4,7 @@
 
 
 **NOTE:** 
-I've recently discovered the [Rocketry](https://github.com/Miksus/rocketry/) project, which you should probably use instead of crontabs.  It is a better solution to what I was trying to achieve.
-
+I've recently discovered the [Rocketry](https://github.com/Miksus/rocketry/) and  [Huey](https://github.com/coleifer/huey) projects, which you should probably use instead of crontabs.  They are just better than crontabs.
 
 
 ---
